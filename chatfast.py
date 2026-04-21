@@ -149,20 +149,27 @@ USER_AGENT = _build_user_agent()
 # Dark theme palette
 # ---------------------------------------------------------------------------
 
-COL_BG          = "#0a0a0b"   # near-black window bg
-COL_PANEL       = "#151517"   # input panel / dropdown bg
-COL_PANEL_ALT   = "#1e1e21"   # buttons / hover
-COL_PANEL_HOVER = "#27272b"
-COL_BORDER      = "#2a2a2f"
+COL_BG          = "#0c0c0e"   # near-black window bg (slightly warmer)
+COL_BG_ALT      = "#101014"   # user turn tint
+COL_PANEL       = "#17181b"   # input panel / dropdown bg
+COL_PANEL_ALT   = "#1f2024"   # buttons / hover
+COL_PANEL_HOVER = "#2a2b2f"
+COL_BORDER      = "#2c2d32"
 COL_TEXT        = "#f2f2f2"   # near-white body text
 COL_TEXT_DIM    = "#c9c9cc"
-COL_MUTED       = "#7a7a80"
+COL_MUTED       = "#82828a"
 COL_ACCENT      = "#e38b56"   # orange asterisk / primary
 COL_ACCENT_FG   = "#1a1208"
 COL_SUCCESS     = "#7ec699"
 COL_ERROR       = "#e07878"
 COL_SELECT_BG   = "#2b2b30"
 COL_SELECT_FG   = "#ffffff"
+
+# Typography sizes — change here and the whole app + markdown tags follow.
+FS_CHAT    = 11   # conversation body
+FS_LABEL   = 11   # "You" / "Assistant" headers
+FS_SMALL   = 9    # meta text
+FS_CODE    = 10   # fenced code blocks
 
 
 # ---------------------------------------------------------------------------
@@ -1153,45 +1160,45 @@ def _pyg_to_tag(tok) -> str:
 def configure_markdown_tags(w: tk.Text) -> None:
     """Register every tag the markdown renderer emits. Call once per widget."""
     w.tag_configure("md_h1", foreground=COL_TEXT,
-                    font=("Segoe UI", 14, "bold"),
-                    spacing1=10, spacing3=4)
+                    font=("Segoe UI", FS_CHAT + 5, "bold"),
+                    spacing1=14, spacing3=6)
     w.tag_configure("md_h2", foreground=COL_TEXT,
-                    font=("Segoe UI", 12, "bold"),
-                    spacing1=8, spacing3=3)
+                    font=("Segoe UI", FS_CHAT + 3, "bold"),
+                    spacing1=12, spacing3=4)
     w.tag_configure("md_h3", foreground=COL_TEXT,
-                    font=("Segoe UI", 10, "bold"),
-                    spacing1=6, spacing3=2)
+                    font=("Segoe UI", FS_CHAT + 1, "bold"),
+                    spacing1=10, spacing3=3)
     w.tag_configure("md_body", foreground=COL_TEXT,
-                    font=("Segoe UI", 10), spacing3=2)
+                    font=("Segoe UI", FS_CHAT), spacing3=4)
     w.tag_configure("md_bullet", foreground=COL_TEXT,
-                    font=("Segoe UI", 10),
-                    lmargin1=6, lmargin2=22, spacing3=2)
+                    font=("Segoe UI", FS_CHAT),
+                    lmargin1=10, lmargin2=28, spacing3=4)
     w.tag_configure("md_bullet_marker", foreground=COL_ACCENT,
-                    font=("Segoe UI", 10, "bold"),
-                    lmargin1=6, lmargin2=22)
+                    font=("Segoe UI", FS_CHAT, "bold"),
+                    lmargin1=10, lmargin2=28)
     w.tag_configure("md_blockquote", foreground=COL_MUTED,
-                    font=("Segoe UI", 10, "italic"),
-                    lmargin1=14, lmargin2=14, spacing3=2)
+                    font=("Segoe UI", FS_CHAT, "italic"),
+                    lmargin1=18, lmargin2=18, spacing3=4)
     w.tag_configure("md_hr", foreground=COL_BORDER,
-                    font=("Segoe UI", 8),
-                    spacing1=6, spacing3=6)
+                    font=("Segoe UI", FS_SMALL),
+                    spacing1=8, spacing3=8)
     w.tag_configure("md_bold", foreground=COL_TEXT,
-                    font=("Segoe UI", 10, "bold"))
+                    font=("Segoe UI", FS_CHAT, "bold"))
     w.tag_configure("md_italic", foreground=COL_TEXT,
-                    font=("Segoe UI", 10, "italic"))
+                    font=("Segoe UI", FS_CHAT, "italic"))
     w.tag_configure("md_inline_code", foreground="#e0b98a",
-                    background="#1a1a1d", font=("Consolas", 9))
+                    background="#1a1a1d", font=("Consolas", FS_CODE))
     w.tag_configure("md_link", foreground="#7aa7d9", underline=True)
     w.tag_configure("md_code_lang", foreground=COL_MUTED,
-                    background=COL_CODE_BG, font=("Consolas", 8),
-                    lmargin1=10, lmargin2=10, spacing1=6, spacing3=2)
+                    background=COL_CODE_BG, font=("Consolas", FS_SMALL),
+                    lmargin1=14, lmargin2=14, spacing1=8, spacing3=4)
     w.tag_configure("md_code_bg", foreground=SYN_COLORS["syn_plain"],
-                    background=COL_CODE_BG, font=("Consolas", 9),
-                    lmargin1=10, lmargin2=10, rmargin=10, spacing3=1)
+                    background=COL_CODE_BG, font=("Consolas", FS_CODE),
+                    lmargin1=14, lmargin2=14, rmargin=14, spacing3=2)
     for name, color in SYN_COLORS.items():
         w.tag_configure(name, foreground=color, background=COL_CODE_BG,
-                        font=("Consolas", 9),
-                        lmargin1=10, lmargin2=10, rmargin=10)
+                        font=("Consolas", FS_CODE),
+                        lmargin1=14, lmargin2=14, rmargin=14)
 
 
 _INLINE_RE = re.compile(
@@ -1695,11 +1702,11 @@ class ChatApp(tk.Tk):
             self.after(300, self.open_sign_in)
 
     def _configure_fonts(self):
-        self.font_body = tkfont.Font(family="Segoe UI", size=10)
-        self.font_body_bold = tkfont.Font(family="Segoe UI", size=10, weight="bold")
+        self.font_body = tkfont.Font(family="Segoe UI", size=FS_CHAT)
+        self.font_body_bold = tkfont.Font(family="Segoe UI", size=FS_CHAT, weight="bold")
         self.font_heading = tkfont.Font(family="Segoe UI", size=16, weight="bold")
-        self.font_small = tkfont.Font(family="Segoe UI", size=8)
-        self.font_mono = tkfont.Font(family="Consolas", size=10)
+        self.font_small = tkfont.Font(family="Segoe UI", size=FS_SMALL)
+        self.font_mono = tkfont.Font(family="Consolas", size=FS_CODE)
 
     def _build_ui(self):
         # Top bar
@@ -1793,13 +1800,9 @@ class ChatApp(tk.Tk):
         self._chats_inner.bind("<Configure>", _sync_scroll)
         self._chats_canvas.bind("<Configure>", _sync_scroll)
 
-        # Mouse wheel scroll on the sidebar
-        def _on_mw(e):
-            self._chats_canvas.yview_scroll(-1 if e.delta > 0 else 1, "units")
-        self._chats_canvas.bind("<Enter>",
-                                lambda _e: self._chats_canvas.bind_all("<MouseWheel>", _on_mw))
-        self._chats_canvas.bind("<Leave>",
-                                lambda _e: self._chats_canvas.unbind_all("<MouseWheel>"))
+        # Mouse wheel routing is handled by a single global binding that
+        # dispatches to whichever of chat / sidebar is under the cursor.
+        # (See `_on_global_mousewheel` below.)
 
         # Sidebar separator on the right edge
         tk.Frame(main, bg=COL_BORDER, width=1).pack(side="left", fill="y")
@@ -1857,7 +1860,7 @@ class ChatApp(tk.Tk):
         self.chat = tk.Text(
             chat_wrap, wrap="word", bg=COL_BG, fg=COL_TEXT,
             insertbackground=COL_TEXT,
-            relief="flat", bd=0, padx=28, pady=18,
+            relief="flat", bd=0, padx=42, pady=24,
             font=self.font_body, spacing1=2, spacing3=4,
             state="disabled",
         )
@@ -1888,21 +1891,31 @@ class ChatApp(tk.Tk):
         self.chat.configure(yscrollcommand=scrollbar.set)
         scrollbar.pack(side="right", fill="y")
 
-        # Structural + streaming tags
+        # Structural + streaming tags. Bigger spacing1 creates clear breaks
+        # between turns; labels use the accent/neutral split so the eye finds
+        # user vs assistant fast.
         self.chat.tag_configure(
             "user_label",
-            foreground=COL_ACCENT, font=self.font_body_bold,
-            spacing1=14, spacing3=4,
+            foreground=COL_ACCENT, font=("Segoe UI", FS_LABEL, "bold"),
+            spacing1=22, spacing3=6,
         )
         self.chat.tag_configure(
             "assist_label",
-            foreground=COL_TEXT, font=self.font_body_bold,
-            spacing1=14, spacing3=4,
+            foreground=COL_TEXT, font=("Segoe UI", FS_LABEL, "bold"),
+            spacing1=22, spacing3=6,
         )
         self.chat.tag_configure(
             "body",
             foreground=COL_TEXT, font=self.font_body,
-            spacing3=6, lmargin1=0, lmargin2=0,
+            spacing3=10, lmargin1=0, lmargin2=0,
+        )
+        # User's own prose gets a subtle tinted background so it's visually
+        # distinct from assistant replies without needing bubbles.
+        self.chat.tag_configure(
+            "user_body",
+            foreground=COL_TEXT, font=self.font_body,
+            background=COL_BG_ALT,
+            lmargin1=0, lmargin2=0, spacing3=10,
         )
         # Reasoning display: a clear block with its own header + step bullets,
         # bright enough to actually read at a glance.
@@ -1939,18 +1952,21 @@ class ChatApp(tk.Tk):
         self.chat.bind("<<CodeBlockCopied>>",
                        lambda _e: self._toast("Copied code"))
 
-        # Bottom input area
+        # Bottom input area — card-style with a subtle border, generous padding.
         bot = tk.Frame(right_col, bg=COL_BG)
-        bot.pack(fill="x", padx=18, pady=(0, 16))
+        bot.pack(fill="x", padx=28, pady=(0, 20))
 
-        input_panel = tk.Frame(bot, bg=COL_PANEL, highlightbackground=COL_BORDER, highlightthickness=1)
+        input_panel = tk.Frame(
+            bot, bg=COL_PANEL,
+            highlightbackground=COL_BORDER, highlightthickness=1,
+        )
         input_panel.pack(fill="x")
 
         self.input_text = tk.Text(
             input_panel, height=3, wrap="word",
             bg=COL_PANEL, fg=COL_TEXT, insertbackground=COL_TEXT,
             relief="flat", bd=0,
-            padx=14, pady=10,
+            padx=18, pady=14,
             font=self.font_body,
         )
         self.input_text.pack(fill="x")
@@ -1958,7 +1974,7 @@ class ChatApp(tk.Tk):
         self.input_text.bind("<Shift-Return>", lambda e: None)
 
         meta_row = tk.Frame(input_panel, bg=COL_PANEL)
-        meta_row.pack(fill="x", padx=10, pady=(4, 8))
+        meta_row.pack(fill="x", padx=14, pady=(4, 12))
 
         self.model_dd = DarkDropdown(
             meta_row,
@@ -1994,6 +2010,25 @@ class ChatApp(tk.Tk):
             relief="flat", bd=0, padx=14, pady=4, cursor="hand2",
         )
         self.send_btn.pack(side="right")
+
+        # Global mouse-wheel routing: scroll whichever scrollable widget the
+        # cursor is currently over. Tk's default is to send wheel to the
+        # focused widget, which is wrong for mixed panes like sidebar + chat.
+        self.bind_all("<MouseWheel>", self._on_global_mousewheel)
+
+    def _on_global_mousewheel(self, event):
+        w = self.winfo_containing(event.x_root, event.y_root)
+        delta = int(-1 * (event.delta / 120))
+        cursor = w
+        while cursor is not None:
+            if cursor is self.chat:
+                self.chat.yview_scroll(delta, "units")
+                return "break"
+            if cursor is self._chats_canvas or cursor is self._chats_inner:
+                self._chats_canvas.yview_scroll(delta, "units")
+                return "break"
+            cursor = getattr(cursor, "master", None)
+        return None
 
     def _append_greeting(self):
         self.chat.config(state="normal")
@@ -2089,13 +2124,19 @@ class ChatApp(tk.Tk):
         selected = chat.id == self.current_chat_id
         bg = COL_PANEL_HOVER if selected else COL_PANEL
         row = tk.Frame(self._chats_inner, bg=bg)
-        row.pack(fill="x", padx=6, pady=1)
+        row.pack(fill="x", padx=8, pady=2)
+
+        # Selected row gets a thin accent rail on the left for visual anchor.
+        rail_col = COL_ACCENT if selected else bg
+        rail = tk.Frame(row, bg=rail_col, width=3)
+        rail.pack(side="left", fill="y")
 
         fg = COL_TEXT if selected else COL_TEXT_DIM
         label = tk.Label(
             row, text=chat.title,
-            bg=bg, fg=fg, font=self.font_body,
-            anchor="w", padx=10, pady=6,
+            bg=bg, fg=fg,
+            font=("Segoe UI", FS_SMALL + 1, "bold" if selected else "normal"),
+            anchor="w", padx=12, pady=9,
             cursor="hand2",
         )
         label.pack(side="left", fill="x", expand=True)
@@ -2103,8 +2144,8 @@ class ChatApp(tk.Tk):
         del_btn = tk.Label(
             row, text="×",
             bg=bg, fg=COL_MUTED,
-            font=("Segoe UI", 12, "bold"),
-            padx=10, pady=2, cursor="hand2",
+            font=("Segoe UI", 13, "bold"),
+            padx=12, pady=2, cursor="hand2",
         )
         del_btn.pack(side="right")
 
@@ -2112,14 +2153,16 @@ class ChatApp(tk.Tk):
             if cid != self.current_chat_id:
                 self._switch_to_chat(cid)
 
-        def on_row_enter(_e=None, w=row, lbl=label, btn=del_btn, sel=selected):
+        def on_row_enter(_e=None, w=row, lbl=label, btn=del_btn,
+                         rl=rail, sel=selected):
             if not sel:
-                for widget in (w, lbl, btn):
+                for widget in (w, lbl, btn, rl):
                     widget.config(bg=COL_PANEL_ALT)
 
-        def on_row_leave(_e=None, w=row, lbl=label, btn=del_btn, sel=selected):
+        def on_row_leave(_e=None, w=row, lbl=label, btn=del_btn,
+                         rl=rail, sel=selected):
             if not sel:
-                for widget in (w, lbl, btn):
+                for widget in (w, lbl, btn, rl):
                     widget.config(bg=COL_PANEL)
 
         def on_del_click(e, cid=chat.id):
@@ -2242,7 +2285,7 @@ class ChatApp(tk.Tk):
     def _append_user(self, text: str):
         self.chat.config(state="normal")
         self.chat.insert("end", "\nYou\n", "user_label")
-        self.chat.insert("end", text + "\n", "body")
+        self.chat.insert("end", text + "\n", "user_body")
         self.chat.config(state="disabled")
         self.chat.see("end")
 
@@ -2421,11 +2464,25 @@ class ChatApp(tk.Tk):
         self._render_output_in_place()
         self._render_active_reasoning_step_in_place()
 
+    def _viewport_touches_live_region(self, start_mark: str) -> bool:
+        """True iff the chat viewport overlaps the live-streaming region.
+
+        We only auto-scroll the chat when the user is actually watching the
+        live content. If they've scrolled up into history, we leave the
+        viewport alone across re-renders (no snap-to-bottom, no drift from
+        fractional yview math).
+        """
+        try:
+            live_line = int(self.chat.index(start_mark).split(".")[0])
+            bottom_visible_line = int(self.chat.index("@0,10000000").split(".")[0])
+        except (tk.TclError, ValueError):
+            return True
+        return bottom_visible_line >= live_line
+
     def _render_output_in_place(self) -> None:
         if not self._output_mark_set or not self.current_assistant_text:
             return
-        yview = self.chat.yview()
-        was_at_bottom = yview[1] > 0.995
+        watching = self._viewport_touches_live_region("assist_output_start")
         self.chat.config(state="normal")
         try:
             self.chat.delete("assist_output_start", "end-1c")
@@ -2434,16 +2491,13 @@ class ChatApp(tk.Tk):
             return
         render_markdown(self.chat, _balance_markdown(self.current_assistant_text))
         self.chat.config(state="disabled")
-        if was_at_bottom:
+        if watching:
             self.chat.see("end")
-        else:
-            self.chat.yview_moveto(yview[0])
 
     def _render_active_reasoning_step_in_place(self) -> None:
         if self._reasoning_step_mark is None or not self._reasoning_step_buf:
             return
-        yview = self.chat.yview()
-        was_at_bottom = yview[1] > 0.995
+        watching = self._viewport_touches_live_region(self._reasoning_step_mark)
         self.chat.config(state="normal")
         try:
             self.chat.delete(self._reasoning_step_mark, "end-1c")
@@ -2454,10 +2508,8 @@ class ChatApp(tk.Tk):
                        _balance_markdown(self._reasoning_step_buf),
                        "reasoning")
         self.chat.config(state="disabled")
-        if was_at_bottom:
+        if watching:
             self.chat.see("end")
-        else:
-            self.chat.yview_moveto(yview[0])
 
     def _end_assistant(self):
         """Finalize: keep streamed reasoning, re-render output as markdown.
