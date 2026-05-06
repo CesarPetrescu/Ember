@@ -9,6 +9,7 @@ import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -66,6 +67,7 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -420,6 +422,7 @@ private fun Composer(
       if (state.status.isNotBlank()) Text(state.status, color = Muted, style = MaterialTheme.typography.labelMedium)
       Spacer(Modifier.width(8.dp))
       Button(
+        modifier = Modifier.width(132.dp),
         onClick = {
           if (state.streaming) {
             onStop()
@@ -428,10 +431,17 @@ private fun Composer(
             text = ""
           }
         },
+        contentPadding = PaddingValues(horizontal = 4.dp, vertical = 0.dp),
         colors = ButtonDefaults.buttonColors(containerColor = if (state.streaming) PanelAlt else Accent, contentColor = if (state.streaming) TextMain else AccentFg),
         shape = RoundedCornerShape(6.dp),
       ) {
-        Text(if (state.streaming) "Stop" else "Send")
+        Text(
+          if (state.streaming) "Stop" else "Send",
+          fontSize = 16.sp,
+          maxLines = 1,
+          softWrap = false,
+          overflow = TextOverflow.Clip,
+        )
       }
     }
   }

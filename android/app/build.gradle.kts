@@ -11,8 +11,8 @@ android {
         applicationId = "com.cesarpetrescu.ember"
         minSdk = 31
         targetSdk = 36
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = 5
+        versionName = "1.0.4"
     }
 
     buildTypes {
