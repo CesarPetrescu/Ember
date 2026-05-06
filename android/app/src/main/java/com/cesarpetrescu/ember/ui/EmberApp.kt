@@ -1,6 +1,7 @@
 package com.cesarpetrescu.ember.ui
 
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.net.Uri
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -56,6 +57,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
@@ -93,9 +95,20 @@ import com.cesarpetrescu.ember.theme.TextDim
 import com.cesarpetrescu.ember.theme.TextMain
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlin.math.min
 
 @Composable
 fun EmberApp(viewModel: EmberViewModel = viewModel()) {
+  val context = LocalContext.current
+  val configuration = LocalConfiguration.current
+  val isWearDevice =
+    context.packageManager.hasSystemFeature(PackageManager.FEATURE_WATCH) ||
+      min(configuration.screenWidthDp, configuration.screenHeightDp) <= 240
+  if (isWearDevice) {
+    EmberWearApp(viewModel)
+    return
+  }
+
   val state by viewModel.state.collectAsStateWithLifecycle()
   val drawerState = rememberDrawerState(DrawerValue.Closed)
   val scope = rememberCoroutineScope()
