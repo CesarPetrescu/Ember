@@ -1,11 +1,17 @@
 package com.cesarpetrescu.ember.ui
 
+import android.app.Activity
+import android.app.RemoteInput
 import android.content.Intent
 import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.ScrollState
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.gestures.scrollBy
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -18,7 +24,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
@@ -27,11 +32,10 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.BasicTextField
-import androidx.compose.foundation.text.KeyboardActions
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
@@ -51,13 +55,12 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.input.rotary.onRotaryScrollEvent
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -84,13 +87,21 @@ import com.cesarpetrescu.ember.theme.TextDim
 import com.cesarpetrescu.ember.theme.TextMain
 import kotlinx.coroutines.launch
 
-private val WearScreenPadding = PaddingValues(horizontal = 18.dp, vertical = 10.dp)
+private val WearScreenPadding = PaddingValues(horizontal = 24.dp, vertical = 14.dp)
 private const val RotaryScrollMultiplier = 1.35f
+private const val PageChats = 0
+private const val PageChat = 1
+private const val PageSettings = 2
+private const val RemoteInputKey = "ember_text"
+private const val RemoteInputAction = "android.support.wearable.input.action.REMOTE_INPUT"
+private const val RemoteInputExtra = "android.support.wearable.input.extra.REMOTE_INPUTS"
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun EmberWearApp(viewModel: EmberViewModel) {
   val state by viewModel.state.collectAsStateWithLifecycle()
-  var screen by rememberSaveable { mutableStateOf(WearScreen.Chat) }
+  val pagerState = rememberPagerState(initialPage = PageChat) { 3 }
+  val scope = rememberCoroutineScope()
 
   state.signIn?.let {
     WearSignInScreen(
@@ -101,54 +112,73 @@ fun EmberWearApp(viewModel: EmberViewModel) {
     return
   }
 
-  when (screen) {
-    WearScreen.Chat ->
-      WearChatScreen(
-        state = state,
-        onChats = { screen = WearScreen.Chats },
-        onSettings = { screen = WearScreen.Settings },
-        onSend = viewModel::sendMessage,
-        onStop = viewModel::stopStreaming,
-        onSignIn = viewModel::startSignIn,
-      )
-    WearScreen.Chats ->
-      WearChatListScreen(
-        state = state,
-        onBack = { screen = WearScreen.Chat },
-        onNew = {
-          viewModel.newChat()
-          screen = WearScreen.Chat
-        },
-        onSelect = {
-          viewModel.switchChat(it)
-          screen = WearScreen.Chat
-        },
-        onDelete = viewModel::deleteChat,
-      )
-    WearScreen.Settings ->
-      WearSettingsScreen(
-        state = state,
-        onBack = { screen = WearScreen.Chat },
-        onModel = viewModel::changeModel,
-        onEffort = viewModel::changeEffort,
-        onToggleContext = viewModel::toggleContextWindow,
-        onSignIn = viewModel::startSignIn,
-        onSignOut = viewModel::signOut,
-      )
+  HorizontalPager(
+    state = pagerState,
+    modifier = Modifier.fillMaxSize().background(AppBg),
+  ) { page ->
+    when (page) {
+      PageChats ->
+        WearChatListScreen(
+          state = state,
+          onBack = { scope.launch { pagerState.animateScrollToPage(PageChat) } },
+          onNew = {
+            viewModel.newChat()
+            scope.launch { pagerState.animateScrollToPage(PageChat) }
+          },
+          onSelect = {
+            viewModel.switchChat(it)
+            scope.launch { pagerState.animateScrollToPage(PageChat) }
+          },
+          onDelete = viewModel::deleteChat,
+        )
+      PageChat ->
+        WearChatScreen(
+          state = state,
+          onSend = viewModel::sendMessage,
+          onStop = viewModel::stopStreaming,
+          onSignIn = viewModel::startSignIn,
+        )
+      PageSettings ->
+        WearSettingsScreen(
+          state = state,
+          onBack = { scope.launch { pagerState.animateScrollToPage(PageChat) } },
+          onModel = viewModel::changeModel,
+          onEffort = viewModel::changeEffort,
+          onToggleContext = viewModel::toggleContextWindow,
+          onSignIn = viewModel::startSignIn,
+          onSignOut = viewModel::signOut,
+        )
+    }
   }
 }
-
-private enum class WearScreen { Chat, Chats, Settings }
 
 @Composable
 private fun WearChatScreen(
   state: EmberUiState,
-  onChats: () -> Unit,
-  onSettings: () -> Unit,
   onSend: (String) -> Unit,
   onStop: () -> Unit,
   onSignIn: () -> Unit,
 ) {
+  val launcher =
+    rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+      if (result.resultCode == Activity.RESULT_OK) {
+        val text =
+          result.data
+            ?.let { RemoteInput.getResultsFromIntent(it) }
+            ?.getCharSequence(RemoteInputKey)
+            ?.toString()
+            .orEmpty()
+            .trim()
+        if (text.isNotBlank()) onSend(text)
+      }
+    }
+
+  fun openInput() {
+    val ri = RemoteInput.Builder(RemoteInputKey).setLabel("Message Ember").build()
+    val intent = Intent(RemoteInputAction).putExtra(RemoteInputExtra, arrayOf(ri))
+    launcher.launch(intent)
+  }
+
   Column(
     modifier =
       Modifier
@@ -157,57 +187,80 @@ private fun WearChatScreen(
         .safeDrawingPadding()
         .padding(WearScreenPadding),
   ) {
-    WearHeader(state = state, onChats = onChats, onSettings = onSettings)
-    WearContextLine(state)
-    if (state.signedIn) {
-      WearMessageList(
-        messages = state.messages,
-        livePhase = state.status,
-        modifier = Modifier.weight(1f),
-      )
-      WearComposer(
-        state = state,
-        onSend = onSend,
-        onStop = onStop,
-      )
-    } else {
+    WearStatusStrip(state)
+
+    if (!state.signedIn) {
       WearSignedOutHome(
         signedInLabel = state.signedInLabel,
         onSignIn = onSignIn,
         modifier = Modifier.weight(1f),
       )
+      return@Column
     }
+
+    WearMessageList(
+      messages = state.messages,
+      livePhase = state.status,
+      modifier =
+        Modifier
+          .weight(1f)
+          .fillMaxWidth()
+          .pointerInput(Unit) {
+            detectTapGestures(onDoubleTap = { openInput() })
+          },
+    )
+
+    WearChip(
+      text = if (state.streaming) "Stop" else "Type",
+      onClick = if (state.streaming) onStop else { { openInput() } },
+      accent = !state.streaming,
+      modifier =
+        Modifier
+          .fillMaxWidth()
+          .height(28.dp)
+          .padding(top = 4.dp),
+    )
   }
 }
 
 @Composable
-private fun WearHeader(
-  state: EmberUiState,
-  onChats: () -> Unit,
-  onSettings: () -> Unit,
-) {
+private fun WearStatusStrip(state: EmberUiState) {
   Row(
-    modifier = Modifier.fillMaxWidth().height(30.dp),
+    modifier = Modifier.fillMaxWidth().height(18.dp),
     verticalAlignment = Alignment.CenterVertically,
-    horizontalArrangement = Arrangement.spacedBy(6.dp),
   ) {
-    WearChip(text = "Chats", onClick = onChats, modifier = Modifier.width(46.dp))
     Text(
-      "Ember",
-      color = TextMain,
-      style = MaterialTheme.typography.titleMedium,
-      textAlign = TextAlign.Center,
+      state.model.removePrefix("gpt-"),
+      color = TextDim,
+      fontSize = 10.sp,
       maxLines = 1,
       overflow = TextOverflow.Ellipsis,
-      modifier = Modifier.weight(1f),
+      modifier = Modifier.width(34.dp),
+    )
+    LinearProgressIndicator(
+      progress = { state.contextPercentLeft / 100f },
+      color = Accent,
+      trackColor = PanelAlt,
+      modifier =
+        Modifier
+          .weight(1f)
+          .padding(horizontal = 6.dp)
+          .height(3.dp)
+          .clip(RoundedCornerShape(2.dp)),
     )
     Surface(
       color = if (state.signedIn) Success else Muted,
       shape = RoundedCornerShape(50),
-      modifier = Modifier.size(7.dp),
+      modifier = Modifier.size(6.dp),
       content = {},
     )
-    WearChip(text = "Set", onClick = onSettings, modifier = Modifier.width(38.dp))
+    Text(
+      "${state.contextPercentLeft}%",
+      color = TextDim,
+      fontSize = 10.sp,
+      textAlign = TextAlign.End,
+      modifier = Modifier.width(30.dp).padding(start = 4.dp),
+    )
   }
 }
 
@@ -284,7 +337,7 @@ private fun WearMessageList(
 
   if (messages.isEmpty()) {
     Box(modifier = modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
-      Text("Say something", color = Muted, fontSize = 13.sp)
+      Text("Tap to type", color = Muted, fontSize = 12.sp)
     }
     return
   }
@@ -292,7 +345,7 @@ private fun WearMessageList(
   LazyColumn(
     state = listState,
     modifier = modifier.fillMaxWidth().rotaryScroll(listState),
-    contentPadding = PaddingValues(top = 4.dp, bottom = 8.dp),
+    contentPadding = PaddingValues(top = 4.dp, bottom = 6.dp),
     verticalArrangement = Arrangement.spacedBy(8.dp),
   ) {
     items(messages, key = { it.id }) { message ->
@@ -358,73 +411,6 @@ private fun WearMessageItem(message: UiMessage) {
         fontSize = 13.sp,
         lineHeight = 18.sp,
         modifier = Modifier.padding(top = 4.dp),
-      )
-    }
-  }
-}
-
-@Composable
-private fun WearComposer(
-  state: EmberUiState,
-  onSend: (String) -> Unit,
-  onStop: () -> Unit,
-) {
-  var text by rememberSaveable(state.currentChatId) { mutableStateOf("") }
-  fun submit() {
-    when {
-      state.streaming -> onStop()
-      text.isNotBlank() -> {
-        onSend(text)
-        text = ""
-      }
-    }
-  }
-
-  Column(
-    modifier =
-      Modifier
-        .fillMaxWidth()
-        .imePadding(),
-  ) {
-    Box(
-      modifier =
-        Modifier
-          .fillMaxWidth()
-          .height(48.dp)
-          .clip(RoundedCornerShape(8.dp))
-          .background(Panel)
-          .padding(horizontal = 10.dp, vertical = 8.dp),
-      contentAlignment = Alignment.CenterStart,
-    ) {
-      if (text.isBlank()) Text("Message", color = Muted, fontSize = 13.sp)
-      BasicTextField(
-        value = text,
-        onValueChange = { value -> text = value },
-        modifier = Modifier.fillMaxWidth(),
-        textStyle = TextStyle(color = TextMain, fontSize = 13.sp, lineHeight = 16.sp),
-        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Send),
-        keyboardActions = KeyboardActions(onSend = { submit() }),
-        maxLines = 2,
-      )
-    }
-    Row(
-      modifier = Modifier.fillMaxWidth().padding(top = 6.dp),
-      verticalAlignment = Alignment.CenterVertically,
-      horizontalArrangement = Arrangement.spacedBy(8.dp),
-    ) {
-      Text(
-        state.status.ifBlank { state.effort },
-        color = Muted,
-        fontSize = 10.sp,
-        maxLines = 1,
-        overflow = TextOverflow.Ellipsis,
-        modifier = Modifier.weight(1f),
-      )
-      WearChip(
-        text = if (state.streaming) "Stop" else "Send",
-        onClick = { submit() },
-        accent = !state.streaming,
-        modifier = Modifier.width(68.dp),
       )
     }
   }

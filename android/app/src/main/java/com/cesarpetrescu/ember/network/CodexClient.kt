@@ -39,7 +39,7 @@ private const val DeviceRedirectUri = "$Issuer/deviceauth/callback"
 private const val VerificationUrl = "$Issuer/codex/device"
 private const val BackendResponsesUrl = "https://chatgpt.com/backend-api/codex/responses"
 private const val Originator = "codex_cli_rs"
-private const val CodexCliVersion = "0.105.0"
+private const val CodexCliVersion = "0.129.0"
 private const val UserAgent = "$Originator/$CodexCliVersion (Android) ember"
 
 data class ResponseMessage(val role: String, val text: String)
