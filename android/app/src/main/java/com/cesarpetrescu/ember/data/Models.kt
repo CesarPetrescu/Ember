@@ -4,12 +4,13 @@ import kotlinx.serialization.Serializable
 import java.util.Locale
 
 const val SparkModel = "gpt-5.3-codex-spark"
-const val DefaultModel = "gpt-5.4"
+const val DefaultModel = "gpt-5.5"
 const val DefaultEffort = "medium"
 const val BaselineTokens = 12_000
 
 val ModelSpecs =
   linkedMapOf(
+    "gpt-5.5" to listOf("low", "medium", "high", "xhigh"),
     "gpt-5.4" to listOf("low", "medium", "high", "xhigh"),
     "gpt-5.4-mini" to listOf("low", "medium", "high", "xhigh"),
     "gpt-5.3-codex" to listOf("low", "medium", "high", "xhigh"),
@@ -19,6 +20,7 @@ val ModelSpecs =
 
 val ContextWindows =
   mapOf(
+    "gpt-5.5" to 272_000,
     "gpt-5.4" to 272_000,
     "gpt-5.4-mini" to 272_000,
     "gpt-5.3-codex" to 272_000,
@@ -26,7 +28,7 @@ val ContextWindows =
     "gpt-5.2" to 272_000,
   )
 
-val MaxContextWindows = mapOf("gpt-5.4" to 1_000_000)
+val MaxContextWindows = mapOf("gpt-5.5" to 1_000_000, "gpt-5.4" to 1_000_000)
 
 fun formatTokenCount(n: Int): String =
   when {

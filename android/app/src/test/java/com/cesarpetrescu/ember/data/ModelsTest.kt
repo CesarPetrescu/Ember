@@ -1,6 +1,7 @@
 package com.cesarpetrescu.ember.data
 
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class ModelsTest {
@@ -16,5 +17,13 @@ class ModelsTest {
     assertEquals(100, percentOfContextRemaining(12_000, 272_000))
     assertEquals(50, percentOfContextRemaining(142_000, 272_000))
     assertEquals(0, percentOfContextRemaining(272_000, 272_000))
+  }
+
+  @Test
+  fun gpt55_isAvailableAsTheDefaultModel() {
+    assertEquals("gpt-5.5", DefaultModel)
+    assertEquals(listOf("low", "medium", "high", "xhigh"), ModelSpecs["gpt-5.5"])
+    assertEquals(272_000, ContextWindows["gpt-5.5"])
+    assertTrue(MaxContextWindows["gpt-5.5"] == 1_000_000)
   }
 }
