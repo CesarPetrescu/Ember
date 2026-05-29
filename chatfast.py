@@ -68,6 +68,7 @@ SPARK_MODEL = "gpt-5.3-codex-spark"
 
 MODEL_SPECS: dict[str, list[str]] = {
     # === Recommended ===
+    "gpt-5.5":                ["low", "medium", "high", "xhigh"],
     "gpt-5.4":                ["low", "medium", "high", "xhigh"],
     "gpt-5.4-mini":           ["low", "medium", "high", "xhigh"],
     "gpt-5.3-codex":          ["low", "medium", "high", "xhigh"],
@@ -77,7 +78,7 @@ MODEL_SPECS: dict[str, list[str]] = {
 }
 MODEL_GROUPS: list[tuple[str, list[str]]] = [
     ("Recommended", [
-        "gpt-5.4", "gpt-5.4-mini", "gpt-5.3-codex", SPARK_MODEL,
+        "gpt-5.5", "gpt-5.4", "gpt-5.4-mini", "gpt-5.3-codex", SPARK_MODEL,
     ]),
     ("Alternative", [
         "gpt-5.2",
@@ -90,6 +91,7 @@ DEFAULT_EFFORT = "medium"
 # Context window per model (default shown by the UI bar). Sourced from live
 # /codex/models probe against a ChatGPT Pro account on 2026-04-21.
 CONTEXT_WINDOWS: dict[str, int] = {
+    "gpt-5.5":              272_000,
     "gpt-5.4":              272_000,
     "gpt-5.4-mini":         272_000,
     "gpt-5.3-codex":        272_000,
@@ -100,6 +102,7 @@ CONTEXT_WINDOWS: dict[str, int] = {
 # bar's denominator to this value. The backend decides the real ceiling;
 # here we only change what the UI displays as "full".
 MAX_CONTEXT_WINDOWS: dict[str, int] = {
+    "gpt-5.5":              1_000_000,
     "gpt-5.4":              1_000_000,
 }
 # Codex reserves this many tokens for its fixed system prompt / tool defs
@@ -131,9 +134,9 @@ def percent_of_context_remaining(total_tokens: int, context_window: int) -> int:
 # route-reject us as an unknown client. These strings mirror
 # codex-rs/login/src/auth/default_client.rs.
 ORIGINATOR = "codex_cli_rs"
-# Must be >= 0.100.0 for Spark to be entitled. Bumped above that so the
-# server includes gpt-5.3-codex-spark in /codex/models for our account.
-CODEX_CLI_VERSION = "0.105.0"
+# Must be >= 0.100.0 for Spark to be entitled and >= 0.124.0 for
+# gpt-5.5 entitlement in /codex/models.
+CODEX_CLI_VERSION = "0.129.0"
 
 
 def _build_user_agent() -> str:

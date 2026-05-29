@@ -15,10 +15,11 @@ extra API key, no extra subscription.
 - Reasoning-step previews — `▌ Reasoning` header, per-step bullets, italic
   body. Kept visible after the final answer renders.
 - Context-usage bar at the top of the chat area: tokens used / model
-  window, percent remaining. Per-chat 1M-context toggle for `gpt-5.4`.
+  window, percent remaining. Per-chat 1M-context toggle for `gpt-5.5` and
+  `gpt-5.4`.
 - All models entitled on your account (probed from `/codex/models`):
-  `gpt-5.4`, `gpt-5.4-mini`, `gpt-5.3-codex`, `gpt-5.3-codex-spark`,
-  `gpt-5.2`.
+  `gpt-5.5`, `gpt-5.4`, `gpt-5.4-mini`, `gpt-5.3-codex`,
+  `gpt-5.3-codex-spark`, `gpt-5.2`.
 - Multi-chat sidebar — click to switch, `×` to delete, double-click to
   rename. First turn auto-titles the chat in 1-3 words via Spark.
 - Click any rendered code block to copy it.
